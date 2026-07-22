@@ -202,6 +202,11 @@ jobs:
         uses: gradle/actions/setup-gradle@v6
         with:
           cache-read-only: false
+      - name: Generate signing keystore
+        run: |
+          rm -f TMessagesProj/release.keystore
+          keytool -genkeypair -v \n            -keystore TMessagesProj/release.keystore \n            -alias androidkey -keyalg RSA -keysize 2048 -validity 10000 \n            -storepass android -keypass android \n            -dname "CN=AyuGram CE, OU=Community, O=Community, L=NA, ST=NA, C=US"
+          keytool -list -keystore TMessagesProj/release.keystore -storepass android
       - name: Debug Build
         run: |
           export KEYSTORE_PASS=android
