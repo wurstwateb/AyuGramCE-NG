@@ -36,6 +36,12 @@ object NaConfig {
             ConfigItem.configTypeBool,
             false
         )
+    val saveDeletedMessages =
+        addConfig(
+            "SaveDeletedMessages",
+            ConfigItem.configTypeBool,
+            false
+        )
     val disableSecondAddress =
         addConfig(
             "disableSecondAddress",

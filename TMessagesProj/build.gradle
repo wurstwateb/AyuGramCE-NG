@@ -364,6 +364,9 @@ dependencies {
 dependencies {
     implementation "androidx.browser:browser:1.8.0"
     implementation "androidx.viewpager:viewpager:1.0.0"
+    // AyuGram: local storage for deleted messages
+    implementation "androidx.room:room-runtime:2.6.1"
+    annotationProcessor "androidx.room:room-compiler:2.6.1"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0"
     // map
     implementation "org.maplibre.gl:android-sdk:11.13.5"

@@ -144,6 +144,7 @@ import tw.nekomimi.nekogram.NekoXConfig;
 import tw.nekomimi.nekogram.utils.AlertUtil;
 import tw.nekomimi.nekogram.utils.UIUtil;
 import xyz.nextalone.nagram.NaConfig;
+import xyz.nextalone.nagram.ayu.AyuMessagesController;
 
 public class MessagesController extends BaseController implements NotificationCenter.NotificationCenterDelegate {
 
@@ -9446,6 +9447,51 @@ public class MessagesController extends BaseController implements NotificationCe
         if ((messages == null || messages.isEmpty()) && taskId == 0) {
             return;
         }
+        // --- AyuGram: keep a local copy of messages about to be deleted ---
+        if (NaConfig.INSTANCE.getSaveDeletedMessages().Bool()
+                && mode != ChatActivity.MODE_SCHEDULED
+                && messages != null
+                && !messages.isEmpty()
+                && dialogId != 0) {
+            final AyuMessagesController ayu = AyuMessagesController.getInstance(currentAccount);
+            final long fDialogId = dialogId;
+            final long fTopicId = topicId;
+            for (int a = 0, N = messages.size(); a < N; a++) {
+                Integer midObj = messages.get(a);
+                if (midObj == null) {
+                    continue;
+                }
+                final int fMid = midObj;
+                TLRPC.Message found = null;
+                try {
+                    ArrayList<MessageObject> cached = dialogMessage.get(fDialogId);
+                    if (cached != null) {
+                        for (int i = 0; i < cached.size(); i++) {
+                            MessageObject mo = cached.get(i);
+                            if (mo != null && mo.getId() == fMid) {
+                                found = mo.messageOwner;
+                                break;
+                            }
+                        }
+                    }
+                } catch (Throwable ignore) {
+                }
+                if (found != null) {
+                    ayu.onMessageDeleted(found, fDialogId, fTopicId);
+                } else {
+                    Utilities.globalQueue.postRunnable(() -> {
+                        try {
+                            TLRPC.Message stored = getMessagesStorage().getMessage(fDialogId, fMid);
+                            if (stored != null) {
+                                ayu.onMessageDeleted(stored, fDialogId, fTopicId);
+                            }
+                        } catch (Throwable ignore) {
+                        }
+                    });
+                }
+            }
+        }
+        // --- end AyuGram ---
         ArrayList<Integer> toSend = null;
         long channelId;
         if (taskId == 0) {
